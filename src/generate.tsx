@@ -455,16 +455,16 @@ export default function generateSelector<
         optionFilterProp,
         filterOption: mode === 'combobox' && filterOption === undefined ? () => true : filterOption,
       });
-      if (
-        mode === 'tags' &&
-        filteredOptions.every((opt) => opt[optionFilterProp] !== mergedSearchValue)
-      ) {
-        filteredOptions.unshift({
-          value: mergedSearchValue,
-          label: mergedSearchValue,
-          key: '__RC_SELECT_TAG_PLACEHOLDER__',
-        });
-      }
+      // if (
+      //   mode === 'tags' &&
+      //   filteredOptions.every((opt) => opt[optionFilterProp] !== mergedSearchValue)
+      // ) {
+      //   filteredOptions.unshift({
+      //     value: mergedSearchValue,
+      //     label: mergedSearchValue,
+      //     key: '__RC_SELECT_TAG_PLACEHOLDER__',
+      //   });
+      // }
       if (filterSort && Array.isArray(filteredOptions)) {
         return ([...filteredOptions] as OptionsType).sort(filterSort);
       }
