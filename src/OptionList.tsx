@@ -5,7 +5,6 @@ import useMemo from 'rc-util/lib/hooks/useMemo';
 import classNames from 'classnames';
 import type { ListRef } from 'rc-virtual-list';
 import List from 'rc-virtual-list';
-import TransBtn from './TransBtn';
 import type {
   OptionsType as SelectOptionsType,
   FlattenOptionData as SelectFlattenOptionData,
@@ -69,7 +68,6 @@ const OptionList: React.RefForwardingComponent<
     itemHeight,
     notFoundContent,
     open,
-    menuItemSelectedIcon,
     virtual,
     onSelect,
     onToggleOpen,
@@ -166,7 +164,7 @@ const OptionList: React.RefForwardingComponent<
   // ========================== Values ==========================
   const onSelectValue = (value: RawValueType) => {
     if (value !== undefined) {
-      onSelect(value, { selected: !values.has(value) });
+      onSelect(value, { selected: true });
     }
 
     // Single mode should always close by select
@@ -299,31 +297,17 @@ const OptionList: React.RefForwardingComponent<
             );
           }
 
-          const {
-            disabled,
-            value,
-            title,
-            children,
-            style,
-            className,
-            ...otherProps
-          } = data as OptionData;
-
-          // Option
-          const selected = values.has(value);
+          const { disabled, value, title, children, style, className, ...otherProps } =
+            data as OptionData;
 
           const optionPrefixCls = `${itemPrefixCls}-option`;
           const optionClassName = classNames(itemPrefixCls, optionPrefixCls, className, {
             [`${optionPrefixCls}-grouped`]: groupOption,
             [`${optionPrefixCls}-active`]: activeIndex === itemIndex && !disabled,
             [`${optionPrefixCls}-disabled`]: disabled,
-            [`${optionPrefixCls}-selected`]: selected,
           });
 
           const mergedLabel = childrenAsData ? children : label;
-
-          const iconVisible =
-            !menuItemSelectedIcon || typeof menuItemSelectedIcon === 'function' || selected;
 
           const content = mergedLabel || value;
           // https://github.com/ant-design/ant-design/issues/26717
@@ -338,7 +322,6 @@ const OptionList: React.RefForwardingComponent<
           return (
             <div
               {...otherProps}
-              aria-selected={selected}
               className={optionClassName}
               title={optionTitle}
               onMouseMove={() => {
@@ -355,16 +338,6 @@ const OptionList: React.RefForwardingComponent<
               style={style}
             >
               <div className={`${optionPrefixCls}-content`}>{content}</div>
-              {React.isValidElement(menuItemSelectedIcon) || selected}
-              {iconVisible && (
-                <TransBtn
-                  className={`${itemPrefixCls}-option-state`}
-                  customizeIcon={menuItemSelectedIcon}
-                  customizeIconProps={{ isSelected: selected }}
-                >
-                  {selected ? '✓' : null}
-                </TransBtn>
-              )}
             </div>
           );
         }}
