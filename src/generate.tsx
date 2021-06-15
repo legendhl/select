@@ -37,7 +37,7 @@ import type {
 } from './interface/generator';
 import { INTERNAL_PROPS_MARK } from './interface/generator';
 import type { OptionListProps, RefOptionListProps } from './OptionList';
-import { toInnerValue, toOuterValues, removeLastEnabledValue, getUUID } from './utils/commonUtil';
+import { toInnerValue, toOuterValues, getUUID } from './utils/commonUtil';
 import TransBtn from './TransBtn';
 import useLock from './hooks/useLock';
 import useDelayReset from './hooks/useDelayReset';
@@ -226,7 +226,7 @@ export default function generateSelector<
     label?: React.ReactNode;
     key?: Key;
     disabled?: boolean;
-  }[]
+  }[],
 >(config: GenerateConfig<OptionsType>) {
   const {
     prefixCls: defaultPrefixCls,
@@ -521,14 +521,16 @@ export default function generateSelector<
 
       if (!internalProps.skipTriggerSelect) {
         // Skip trigger `onSelect` or `onDeselect` if configured
-        const selectValue = (mergedLabelInValue
-          ? getLabeledValue(newValue, {
-              options: newValueOption,
-              prevValueMap: mergedValueMap,
-              labelInValue: mergedLabelInValue,
-              optionLabelProp: mergedOptionLabelProp,
-            })
-          : newValue) as SingleType<ValueType>;
+        const selectValue = (
+          mergedLabelInValue
+            ? getLabeledValue(newValue, {
+                options: newValueOption,
+                prevValueMap: mergedValueMap,
+                labelInValue: mergedLabelInValue,
+                optionLabelProp: mergedOptionLabelProp,
+              })
+            : newValue
+        ) as SingleType<ValueType>;
 
         if (isSelect && onSelect) {
           onSelect(selectValue, outOption);
@@ -734,9 +736,7 @@ export default function generateSelector<
       if (!searchText || !searchText.trim()) {
         return;
       }
-      const newRawValues = Array.from(
-        new Set<RawValueType>([...mergedRawValue, searchText]),
-      );
+      const newRawValues = Array.from(new Set<RawValueType>([...mergedRawValue, searchText]));
       triggerChange(newRawValues);
       newRawValues.forEach((newRawValue) => {
         triggerSelect(newRawValue, true, 'input');
@@ -771,6 +771,7 @@ export default function generateSelector<
     const onInternalKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event, ...rest) => {
       const clearLock = getClearLock();
       const { which } = event;
+      // debugger
 
       if (which === KeyCode.ENTER) {
         // Do not submit form when type in the input
@@ -794,17 +795,30 @@ export default function generateSelector<
         !mergedSearchValue &&
         mergedRawValue.length
       ) {
-        const removeInfo = removeLastEnabledValue(displayValues, mergedRawValue);
-
-        if (removeInfo.removedValue !== null) {
-          triggerChange(removeInfo.values);
-          triggerSelect(removeInfo.removedValue, false, 'input');
+        const removeIndex = selectorRef.current.getLastEnabledIndex();
+        if (removeIndex >= 0 && removeIndex < displayValues.length) {
+          const newValues = [...mergedRawValue];
+          const removedValue = newValues[removeIndex];
+          newValues.splice(removeIndex, 1);
+          const removeInfo = {
+            values: newValues,
+            removedValue,
+          };
+          if (removeInfo.removedValue !== null) {
+            triggerChange(removeInfo.values);
+            triggerSelect(removeInfo.removedValue, false, 'input');
+          }
+          setTimeout(() => {
+            selectorRef.current.focus();
+          });
         }
       }
 
       if (mergedOpen && listRef.current) {
         listRef.current.onKeyDown(event, ...rest);
       }
+
+      selectorRef.current.onKeyDown(event, ...rest);
 
       if (onKeyDown) {
         onKeyDown(event, ...rest);
@@ -1110,7 +1124,7 @@ export default function generateSelector<
 
   // Ref of Select
   type RefSelectFuncType = typeof RefSelectFunc;
-  const RefSelect = ((React.forwardRef as unknown) as RefSelectFuncType)(Select);
+  const RefSelect = (React.forwardRef as unknown as RefSelectFuncType)(Select);
 
   return RefSelect;
 }

@@ -48,6 +48,8 @@ export interface RefSelectorProps {
   focus: () => void;
   blur: () => void;
   scrollTo?: ScrollTo;
+  onKeyDown: React.KeyboardEventHandler;
+  getLastEnabledIndex: () => number;
 }
 
 export interface SelectorProps {
@@ -116,6 +118,8 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     domRef,
   } = props;
 
+  const multiSelectorRef = useRef(null);
+
   // ======================= Ref =======================
   React.useImperativeHandle(ref, () => ({
     focus: () => {
@@ -123,6 +127,18 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     },
     blur: () => {
       inputRef.current.blur();
+    },
+    onKeyDown: (e) => {
+      const { which } = e;
+      if (which === KeyCode.LEFT || which === KeyCode.RIGHT) {
+        multiSelectorRef?.current?.onKeyDown(e);
+        setTimeout(() => {
+          inputRef.current.focus();
+        });
+      }
+    },
+    getLastEnabledIndex: () => {
+      return multiSelectorRef?.current?.getLastEnabledIndex();
     },
   }));
 
@@ -248,7 +264,7 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
   };
 
   const selectNode = multiple ? (
-    <MultipleSelector {...props} {...sharedProps} />
+    <MultipleSelector ref={multiSelectorRef} {...props} {...sharedProps} />
   ) : (
     <SingleSelector {...props} {...sharedProps} />
   );

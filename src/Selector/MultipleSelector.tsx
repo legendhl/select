@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useImperativeHandle } from 'react';
 import classNames from 'classnames';
 import pickAttrs from 'rc-util/lib/pickAttrs';
-import Overflow from 'rc-overflow';
+import KeyCode from 'rc-util/lib/KeyCode';
+// import Overflow from 'rc-overflow';
 import TransBtn from '../TransBtn';
 import type {
   LabelValueType,
@@ -33,13 +34,22 @@ interface SelectorProps extends InnerSelectorProps {
 
   // Event
   onSelect: (value: RawValueType, option: { selected: boolean }) => void;
+
+  // ref
+  ref: React.Ref<RefMultiSelectorProps>;
 }
 
 const onPreventMouseDown = (event: React.MouseEvent) => {
   event.preventDefault();
   event.stopPropagation();
 };
-const SelectSelector: React.FC<SelectorProps> = (props) => {
+
+export interface RefMultiSelectorProps {
+  onKeyDown: React.KeyboardEventHandler;
+  getLastEnabledIndex: () => number;
+}
+
+const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) => {
   const {
     id,
     prefixCls,
@@ -59,9 +69,9 @@ const SelectSelector: React.FC<SelectorProps> = (props) => {
 
     removeIcon,
 
-    maxTagCount,
+    // maxTagCount,
     maxTagTextLength,
-    maxTagPlaceholder = (omittedValues: LabelValueType[]) => `+ ${omittedValues.length} ...`,
+    // maxTagPlaceholder = (omittedValues: LabelValueType[]) => `+ ${omittedValues.length} ...`,
     tagRender,
     onToggleOpen,
 
@@ -77,6 +87,29 @@ const SelectSelector: React.FC<SelectorProps> = (props) => {
   const measureRef = React.useRef<HTMLSpanElement>(null);
   const [inputWidth, setInputWidth] = useState(0);
   const [focused, setFocused] = useState(false);
+  const [inputOrder, setInputOrder] = useState(0); // 从右至左计数
+
+  // React.useEffect(() => {
+  //   setInputOrder(0);
+  // }, []);
+
+  useImperativeHandle(ref, () => ({
+    onKeyDown: (e) => {
+      const { which } = e;
+      if (which === KeyCode.LEFT) {
+        if (inputOrder < values.length) {
+          setInputOrder(inputOrder + 1);
+        }
+      } else if (which === KeyCode.RIGHT) {
+        if (inputOrder > 0) {
+          setInputOrder(inputOrder - 1);
+        }
+      }
+    },
+    getLastEnabledIndex: () => {
+      return values.length - inputOrder - 1;
+    },
+  }));
 
   const selectionPrefixCls = `${prefixCls}-selection`;
 
@@ -168,14 +201,14 @@ const SelectSelector: React.FC<SelectorProps> = (props) => {
       : defaultRenderSelector(displayLabel, itemDisabled, closable, onClose);
   }
 
-  function renderRest(omittedValues: DisplayLabelValueType[]) {
-    const content =
-      typeof maxTagPlaceholder === 'function'
-        ? maxTagPlaceholder(omittedValues)
-        : maxTagPlaceholder;
+  // function renderRest(omittedValues: DisplayLabelValueType[]) {
+  //   const content =
+  //     typeof maxTagPlaceholder === 'function'
+  //       ? maxTagPlaceholder(omittedValues)
+  //       : maxTagPlaceholder;
 
-    return defaultRenderSelector(content, false);
-  }
+  //   return defaultRenderSelector(content, false);
+  // }
 
   // >>> Input Node
   const inputNode = (
@@ -220,15 +253,30 @@ const SelectSelector: React.FC<SelectorProps> = (props) => {
 
   // >>> Selections
   const selectionNode = (
-    <Overflow
-      prefixCls={`${selectionPrefixCls}-overflow`}
-      data={values}
-      renderItem={renderItem}
-      renderRest={renderRest}
-      suffix={inputNode}
-      itemKey="key"
-      maxCount={maxTagCount}
-    />
+    // <Overflow
+    //   prefixCls={`${selectionPrefixCls}-overflow`}
+    //   data={values}
+    //   renderItem={renderItem}
+    //   renderRest={renderRest}
+    //   suffix={inputNode}
+    //   itemKey="key"
+    //   maxCount={maxTagCount}
+    // />
+    <>
+      {values.map((value, index) => {
+        const item = renderItem({ label: value.label, value: value.value });
+        if (inputOrder === values.length - index) {
+          return (
+            <>
+              {inputNode}
+              {item}
+            </>
+          );
+        }
+        return item;
+      })}
+      {inputOrder === 0 ? inputNode : null}
+    </>
   );
 
   return (
@@ -240,6 +288,6 @@ const SelectSelector: React.FC<SelectorProps> = (props) => {
       )}
     </>
   );
-};
+});
 
 export default SelectSelector;
