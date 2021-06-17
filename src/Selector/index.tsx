@@ -95,7 +95,7 @@ export interface SelectorProps {
    * @private get real dom for trigger align.
    * This may be removed after React provides replacement of `findDOMNode`
    */
-  domRef: React.Ref<HTMLDivElement>;
+  domRef: React.RefObject<HTMLDivElement>;
 }
 
 const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = (props, ref) => {
@@ -224,7 +224,8 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     pastedTextRef.current = value;
   };
 
-  const onClick = ({ target }) => {
+  const onClick = (e) => {
+    const { target } = e;
     if (target !== inputRef.current) {
       // Should focus input if click the selector
       const isIE = (document.body.style as any).msTouchAction !== undefined;
@@ -238,10 +239,34 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     }
   };
 
-  const onMouseDown: React.MouseEventHandler<HTMLElement> = (event) => {
+  const onMouseDown = (event) => {
+    const { target } = event;
     const inputMouseDown = getInputMouseDown();
     if (event.target !== inputRef.current && !inputMouseDown) {
       event.preventDefault();
+    }
+
+    if (target === domRef.current) {
+      const { offsetX, offsetY } = event.nativeEvent;
+      const children = target.querySelectorAll(`.${prefixCls}-selection-item`);
+      let i = 0;
+      for (; i < children.length; i += 1) {
+        const child = children[i];
+        if (
+          !(
+            (child.offsetLeft <= offsetX &&
+              child.offsetTop <= offsetY &&
+              child.offsetTop + child.offsetHeight >= offsetY) ||
+            child.offsetTop + child.offsetHeight <= offsetY
+          )
+        ) {
+          break;
+        }
+      }
+      multiSelectorRef?.current?.setInputIndex(children.length - i);
+      setTimeout(() => {
+        inputRef.current.focus();
+      });
     }
 
     if ((mode !== 'combobox' && (!showSearch || !inputMouseDown)) || !open) {

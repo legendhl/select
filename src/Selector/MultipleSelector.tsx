@@ -47,6 +47,7 @@ const onPreventMouseDown = (event: React.MouseEvent) => {
 export interface RefMultiSelectorProps {
   onKeyDown: React.KeyboardEventHandler;
   getLastEnabledIndex: () => number;
+  setInputIndex: (index: number) => void;
 }
 
 const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) => {
@@ -108,6 +109,9 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
     },
     getLastEnabledIndex: () => {
       return values.length - inputOrder - 1;
+    },
+    setInputIndex: (index: number) => {
+      setInputOrder(index);
     },
   }));
 
