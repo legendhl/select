@@ -89,6 +89,7 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
   const [inputWidth, setInputWidth] = useState(0);
   const [focused, setFocused] = useState(false);
   const [inputOrder, setInputOrder] = useState(0); // 从右至左计数
+  const [chosenList, setChosenList] = useState<RawValueType[]>([]);
 
   // React.useEffect(() => {
   //   setInputOrder(0);
@@ -129,16 +130,32 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
   // ===================== Render ======================
   // >>> Render Selector Node. Includes Item & Rest
   function defaultRenderSelector(
+    value: DefaultValueType,
     content: React.ReactNode,
     itemDisabled: boolean,
     closable?: boolean,
     onClose?: React.MouseEventHandler,
+    chosen?: boolean,
   ) {
+    const onMouseDown = (e: React.MouseEvent) => {
+      // onPreventMouseDown(e);
+      // onToggleOpen(!open);
+      const multi = e.metaKey;
+      if (multi) {
+        setChosenList((list) =>
+          chosen ? list.filter((v) => v !== value) : [].concat(list, value),
+        );
+      } else {
+        setChosenList([value] as RawValueType[]);
+      }
+    };
     return (
       <span
         className={classNames(`${selectionPrefixCls}-item`, {
           [`${selectionPrefixCls}-item-disabled`]: itemDisabled,
+          'item-chosen': chosen,
         })}
+        onMouseDown={onMouseDown}
       >
         <span className={`${selectionPrefixCls}-item-content`}>{content}</span>
         {closable && (
@@ -161,14 +178,23 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
     itemDisabled: boolean,
     closable: boolean,
     onClose: React.MouseEventHandler,
+    chosen: boolean,
   ) {
     const onMouseDown = (e: React.MouseEvent) => {
       onPreventMouseDown(e);
       onToggleOpen(!open);
+      const multi = e.metaKey;
+      if (multi) {
+        setChosenList((list) =>
+          chosen ? list.filter((v) => v !== value) : [].concat(list, value),
+        );
+      } else {
+        setChosenList([value] as RawValueType[]);
+      }
     };
 
     return (
-      <span onMouseDown={onMouseDown}>
+      <span onMouseDown={onMouseDown} className={chosen ? 'chosen' : ''}>
         {tagRender({
           label: content,
           value,
@@ -200,9 +226,11 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
       onSelect(value, { selected: false });
     };
 
+    const chosen = chosenList.indexOf(value) >= 0;
+
     return typeof tagRender === 'function'
-      ? customizeRenderSelector(value, displayLabel, itemDisabled, closable, onClose)
-      : defaultRenderSelector(displayLabel, itemDisabled, closable, onClose);
+      ? customizeRenderSelector(value, displayLabel, itemDisabled, closable, onClose, chosen)
+      : defaultRenderSelector(value, displayLabel, itemDisabled, closable, onClose, chosen);
   }
 
   // function renderRest(omittedValues: DisplayLabelValueType[]) {
