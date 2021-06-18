@@ -50,6 +50,10 @@ export interface RefSelectorProps {
   scrollTo?: ScrollTo;
   onKeyDown: React.KeyboardEventHandler;
   getLastEnabledIndex: () => number;
+  getChosenList: () => RawValueType[];
+  setInputIndex: (index: number) => void;
+  clearChosenList: () => void;
+  setChosenValue: (value: RawValueType) => void;
 }
 
 export interface SelectorProps {
@@ -139,6 +143,18 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     },
     getLastEnabledIndex: () => {
       return multiSelectorRef?.current?.getLastEnabledIndex();
+    },
+    getChosenList: () => {
+      return multiSelectorRef?.current?.getChosenList();
+    },
+    setInputIndex: (index: number) => {
+      multiSelectorRef?.current?.setInputIndex(index);
+    },
+    clearChosenList: () => {
+      multiSelectorRef?.current?.clearChosenList();
+    },
+    setChosenValue: (value: RawValueType) => {
+      multiSelectorRef?.current?.setChosenValue(value);
     },
   }));
 

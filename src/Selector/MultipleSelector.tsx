@@ -48,6 +48,9 @@ export interface RefMultiSelectorProps {
   onKeyDown: React.KeyboardEventHandler;
   getLastEnabledIndex: () => number;
   setInputIndex: (index: number) => void;
+  getChosenList: () => RawValueType[];
+  clearChosenList: () => void;
+  setChosenValue: (value: RawValueType) => void;
 }
 
 const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) => {
@@ -111,8 +114,17 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
     getLastEnabledIndex: () => {
       return values.length - inputOrder - 1;
     },
+    getChosenList: () => {
+      return chosenList;
+    },
+    clearChosenList: () => {
+      setChosenList([]);
+    },
     setInputIndex: (index: number) => {
       setInputOrder(index);
+    },
+    setChosenValue: (value: RawValueType) => {
+      setChosenList([value]);
     },
   }));
 

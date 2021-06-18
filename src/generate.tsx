@@ -795,23 +795,48 @@ export default function generateSelector<
         !mergedSearchValue &&
         mergedRawValue.length
       ) {
-        const removeIndex = selectorRef.current.getLastEnabledIndex();
-        if (removeIndex >= 0 && removeIndex < displayValues.length) {
-          const newValues = [...mergedRawValue];
-          const removedValue = newValues[removeIndex];
-          newValues.splice(removeIndex, 1);
-          const removeInfo = {
-            values: newValues,
-            removedValue,
-          };
-          if (removeInfo.removedValue !== null) {
-            triggerChange(removeInfo.values);
-            triggerSelect(removeInfo.removedValue, false, 'input');
+        const chosenList = selectorRef.current.getChosenList();
+        if (chosenList.length) {
+          // 删除所选胶囊，同时移动input node
+          const newValues = mergedRawValue.filter((val) => chosenList.indexOf(val) < 0); // TODO 查找元素
+          const index = mergedRawValue.indexOf(chosenList[chosenList.length - 1]);
+          if (index >= 0) {
+            selectorRef.current.setInputIndex(newValues.length - index);
           }
+          const removedValue = [...chosenList];
+          triggerChange(newValues);
+          removedValue.forEach((val) => {
+            triggerSelect(val, false, 'input');
+          });
+          selectorRef.current.clearChosenList();
           setTimeout(() => {
             selectorRef.current.focus();
           });
+        } else {
+          // 选中之前的胶囊
+          const index = selectorRef.current.getLastEnabledIndex();
+          if (index >= 0 && index < mergedRawValue.length) {
+            const chosenValue = mergedRawValue[index];
+            selectorRef.current.setChosenValue(chosenValue);
+          }
         }
+        // const removeIndex = selectorRef.current.getLastEnabledIndex();
+        // if (removeIndex >= 0 && removeIndex < displayValues.length) {
+        //   const newValues = [...mergedRawValue];
+        //   const removedValue = newValues[removeIndex];
+        //   newValues.splice(removeIndex, 1);
+        //   const removeInfo = {
+        //     values: newValues,
+        //     removedValue,
+        //   };
+        //   if (removeInfo.removedValue !== null) {
+        //     triggerChange(removeInfo.values);
+        //     triggerSelect(removeInfo.removedValue, false, 'input');
+        //   }
+        //   setTimeout(() => {
+        //     selectorRef.current.focus();
+        //   });
+        // }
       }
 
       if (mergedOpen && listRef.current) {
