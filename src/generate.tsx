@@ -801,7 +801,8 @@ export default function generateSelector<
           const newValues = mergedRawValue.filter((val) => chosenList.indexOf(val) < 0); // TODO 查找元素
           const index = mergedRawValue.indexOf(chosenList[chosenList.length - 1]);
           if (index >= 0) {
-            selectorRef.current.setInputIndex(newValues.length - index);
+            const newIndex = newValues.length - index;
+            selectorRef.current.setInputIndex(newIndex >= 0 ? newIndex : 0);
           }
           const removedValue = [...chosenList];
           triggerChange(newValues);
@@ -817,7 +818,7 @@ export default function generateSelector<
           const index = selectorRef.current.getLastEnabledIndex();
           if (index >= 0 && index < mergedRawValue.length) {
             const chosenValue = mergedRawValue[index];
-            selectorRef.current.setChosenValue(chosenValue);
+            selectorRef.current.setChosenValue([chosenValue]);
           }
         }
         // const removeIndex = selectorRef.current.getLastEnabledIndex();
@@ -891,6 +892,8 @@ export default function generateSelector<
       if (disabled) {
         return;
       }
+
+      selectorRef.current.clearChosenList();
 
       if (mergedSearchValue) {
         // `tags` mode should move `searchValue` into values

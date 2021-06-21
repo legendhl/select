@@ -53,7 +53,7 @@ export interface RefSelectorProps {
   getChosenList: () => RawValueType[];
   setInputIndex: (index: number) => void;
   clearChosenList: () => void;
-  setChosenValue: (value: RawValueType) => void;
+  setChosenValue: (values: RawValueType[]) => void;
 }
 
 export interface SelectorProps {
@@ -134,8 +134,8 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     },
     onKeyDown: (e) => {
       const { which } = e;
+      multiSelectorRef?.current?.onKeyDown(e);
       if (which === KeyCode.LEFT || which === KeyCode.RIGHT) {
-        multiSelectorRef?.current?.onKeyDown(e);
         setTimeout(() => {
           inputRef.current.focus();
         });
@@ -153,8 +153,8 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     clearChosenList: () => {
       multiSelectorRef?.current?.clearChosenList();
     },
-    setChosenValue: (value: RawValueType) => {
-      multiSelectorRef?.current?.setChosenValue(value);
+    setChosenValue: (values: RawValueType[]) => {
+      multiSelectorRef?.current?.setChosenValue(values);
     },
   }));
 
@@ -280,6 +280,7 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
         }
       }
       multiSelectorRef?.current?.setInputIndex(children.length - i);
+      multiSelectorRef?.current?.clearChosenList();
       setTimeout(() => {
         inputRef.current.focus();
       });

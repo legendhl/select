@@ -50,7 +50,7 @@ export interface RefMultiSelectorProps {
   setInputIndex: (index: number) => void;
   getChosenList: () => RawValueType[];
   clearChosenList: () => void;
-  setChosenValue: (value: RawValueType) => void;
+  setChosenValue: (values: RawValueType[]) => void;
 }
 
 const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) => {
@@ -94,21 +94,21 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
   const [inputOrder, setInputOrder] = useState(0); // 从右至左计数
   const [chosenList, setChosenList] = useState<RawValueType[]>([]);
 
-  // React.useEffect(() => {
-  //   setInputOrder(0);
-  // }, []);
-
   useImperativeHandle(ref, () => ({
     onKeyDown: (e) => {
-      const { which } = e;
+      const { which, metaKey } = e;
       if (which === KeyCode.LEFT) {
         if (inputOrder < values.length) {
           setInputOrder(inputOrder + 1);
         }
+        setChosenList([]);
       } else if (which === KeyCode.RIGHT) {
         if (inputOrder > 0) {
           setInputOrder(inputOrder - 1);
         }
+        setChosenList([]);
+      } else if (which === KeyCode.A && metaKey) {
+        setChosenList(values.map((val) => val.value));
       }
     },
     getLastEnabledIndex: () => {
@@ -123,8 +123,8 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
     setInputIndex: (index: number) => {
       setInputOrder(index);
     },
-    setChosenValue: (value: RawValueType) => {
-      setChosenList([value]);
+    setChosenValue: (valList: RawValueType[]) => {
+      setChosenList(valList);
     },
   }));
 
@@ -159,6 +159,8 @@ const SelectSelector: React.FC<SelectorProps> = React.forwardRef((props, ref) =>
         );
       } else {
         setChosenList([value] as RawValueType[]);
+        const index = values.map((val) => val.value).indexOf(value as RawValueType);
+        setInputOrder(values.length - index - 1);
       }
     };
     return (
