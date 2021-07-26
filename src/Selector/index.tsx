@@ -13,7 +13,6 @@ import { useRef } from 'react';
 import KeyCode from 'rc-util/lib/KeyCode';
 import type { ScrollTo } from 'rc-virtual-list/lib/List';
 import MultipleSelector from './MultipleSelector';
-import SingleSelector from './SingleSelector';
 import type { LabelValueType, RawValueType, CustomTagProps } from '../interface/generator';
 import type { RenderNode, Mode } from '../interface';
 import useLock from '../hooks/useLock';
@@ -108,7 +107,6 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
 
   const {
     prefixCls,
-    multiple,
     open,
     mode,
     showSearch,
@@ -305,11 +303,7 @@ const Selector: React.RefForwardingComponent<RefSelectorProps, SelectorProps> = 
     onInputCompositionEnd,
   };
 
-  const selectNode = multiple ? (
-    <MultipleSelector ref={multiSelectorRef} {...props} {...sharedProps} />
-  ) : (
-    <SingleSelector {...props} {...sharedProps} />
-  );
+  const selectNode = <MultipleSelector ref={multiSelectorRef} {...props} {...sharedProps} />;
 
   return (
     <div
